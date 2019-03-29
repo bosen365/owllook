@@ -8,7 +8,7 @@ import aiohttp
 import async_timeout
 
 from bs4 import BeautifulSoup
-from aiocache.serializers import PickleSerializer,JsonSerializer
+from aiocache.serializers import PickleSerializer, JsonSerializer
 
 from urllib.parse import urlparse, parse_qs, urljoin
 
@@ -25,6 +25,8 @@ async def cache_owllook_novels_content(url, netloc):
         'user-agent': await get_random_user_agent()
     }
     html = await target_fetch(headers=headers, url=url)
+    if not html:
+        html = get_html_by_requests(url=url, headers=headers)
     if html:
         soup = BeautifulSoup(html, 'html5lib')
         selector = RULES[netloc].content_selector
@@ -62,12 +64,14 @@ async def cache_owllook_novels_content(url, netloc):
     return None
 
 
-# @cached(ttl=300, key_from_attr='url', serializer=PickleSerializer(), namespace="main")
+@cached(ttl=300, key_from_attr='url', serializer=PickleSerializer(), namespace="main")
 async def cache_owllook_novels_chapter(url, netloc):
     headers = {
         'user-agent': await get_random_user_agent()
     }
     html = await target_fetch(headers=headers, url=url)
+    if not html:
+        html = get_html_by_requests(url=url, headers=headers)
     if html:
         soup = BeautifulSoup(html, 'html5lib')
         selector = RULES[netloc].chapter_selector
